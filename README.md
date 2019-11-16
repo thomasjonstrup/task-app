@@ -1,3 +1,5 @@
+Task app made after seing egghead.io videos about React-beautiful-dnd to learn more about how React-beautiful-dnd works.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
