@@ -1,5 +1,7 @@
 Task app made after seing egghead.io videos about React-beautiful-dnd to learn more about how React-beautiful-dnd works.
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7f5b7765-fd83-4c00-90cc-9f29633d9785/deploy-status)](https://app.netlify.com/sites/thomas-task-app/deploys)
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
