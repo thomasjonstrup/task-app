@@ -18,7 +18,7 @@ const initialData = {
 		},
 		'column-3': {
 			id: 'column-3',
-			title: 'To do',
+			title: 'Done',
 			taskIds: []
 		}
 	},
