@@ -13,7 +13,7 @@ const Container = styled.div`
 			? 'lightgrey'
 			: props.isDragging
 			? 'lightgreen'
-			: 'white'};
+			: props => (props.darkmode ? '#263859' : 'white')};
 	display: flex;
 `;
 
@@ -28,7 +28,7 @@ const Container = styled.div`
 class Task extends PureComponent {
 	render() {
 		const isDragDiasabled = this.props.task.id === 'task-1';
-
+		console.log('this.props.darkmode :', this.props.darkmode);
 		return (
 			<Draggable
 				draggableId={this.props.task.id}
@@ -42,6 +42,7 @@ class Task extends PureComponent {
 						ref={provided.innerRef}
 						isDragging={snapshot.isDragging}
 						isDragDisabled={isDragDiasabled}
+						darkmode={this.props.darkmode}
 					>
 						{/* if you want only a handle to control drag <Handle {...provided.dragHandleProps} /> */}
 						{this.props.task.content}

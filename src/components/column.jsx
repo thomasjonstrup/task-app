@@ -7,15 +7,16 @@ import Task from './task';
 const Container = styled.div`
 	margin: 8px;
 	border: 1px solid lightgrey;
-	background-color: white;
+	background-color: ${props => (props.darkmode ? '#17223b' : 'white')};
 	border-radius: 2px;
 	width: 220px;
-
+	color: #6b778d;
 	display: flex;
 	flex-direction: column;
 `;
 const Title = styled.h3`
 	padding: 8px;
+	color: ${props => (props.darkmode ? '#ff6768' : '#172B4D;')};
 `;
 const TaskList = styled.div`
 	padding: 8px;
@@ -36,9 +37,13 @@ export default class Column extends PureComponent {
 				{provided => (
 					<Container
 						{...provided.draggableProps}
+						darkmode={this.props.darkmode}
 						ref={provided.innerRef}
 					>
-						<Title {...provided.dragHandleProps}>
+						<Title
+							{...provided.dragHandleProps}
+							darkmode={this.props.darkmode}
+						>
 							{this.props.column.title}
 						</Title>
 						<Droppable
@@ -60,6 +65,7 @@ export default class Column extends PureComponent {
 										<Task
 											key={task.id}
 											task={task}
+											darkmode={this.props.darkmode}
 											index={index}
 										/>
 									))}

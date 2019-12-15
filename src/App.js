@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Fragment } from 'react';
 import styled from 'styled-components';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 
@@ -7,13 +7,56 @@ import Column from './components/column';
 
 const Container = styled.div`
 	display: flex;
+	background-color: ${props => (props.darkmode ? '#17223b' : 'white')};
 `;
 
 class App extends PureComponent {
-	state = initialData;
+	state = {
+		enterText: '',
+		darkMode: false,
+		homeIndex: null
+	};
+
+	componentDidMount() {
+		if (!localStorage.getItem('myTodoStorage')) {
+			localStorage.setItem('myTodoStorage', JSON.stringify(initialData));
+		}
+	}
+
+	onChange = event => {
+		this.setState({
+			enterText: event.target.value
+		});
+	};
+
+	handleClick = event => {
+		const localState = JSON.parse(localStorage.getItem('myTodoStorage'));
+		const newState = Object.assign({}, this.state);
+
+		const id =
+			'newtask' +
+			'_' +
+			Math.random()
+				.toString(36)
+				.substr(2, 9);
+
+		localState.tasks[id] = {
+			id: id,
+			content: this.state.enterText
+		};
+
+		localState.columns['column-1'].taskIds.push(id);
+
+		newState.enterText = '';
+
+		localStorage.setItem('myTodoStorage', JSON.stringify(localState));
+
+		this.setState(newState);
+	};
 
 	onDragStart = start => {
-		const homeIndex = this.state.columnOrder.indexOf(
+		const localState = JSON.parse(localStorage.getItem('myTodoStorage'));
+		const homeIndex = localState.columnOrder.indexOf(
 			start.source.droppableId
 		);
 
@@ -26,9 +69,10 @@ class App extends PureComponent {
 	};
 
 	onDragUpdate = update => {
+		const localState = JSON.parse(localStorage.getItem('myTodoStorage'));
 		const { destination } = update;
 		const opacity = destination
-			? destination.index / Object.keys(this.state.tasks).length
+			? destination.index / Object.keys(localState.tasks).length
 			: 0;
 
 		document.body.style.backgroundColor = `rgba(153, 141, 217, ${opacity})`;
@@ -37,6 +81,9 @@ class App extends PureComponent {
 	onDragEnd = result => {
 		document.body.style.color = 'inherit';
 		document.body.style.backgroundColor = 'inherit';
+
+		const localState =
+			JSON.parse(localStorage.getItem('myTodoStorage')) || initialData;
 
 		this.setState({
 			homeIndex: null
@@ -56,20 +103,23 @@ class App extends PureComponent {
 		}
 
 		if (type === 'column') {
-			const newColumnOrder = Array.from(this.state.columnOrder);
+			const newColumnOrder = Array.from(localState.columnOrder);
 			newColumnOrder.splice(source.index, 1);
 			newColumnOrder.splice(destination.index, 0, draggableId);
 
 			const newState = {
-				...this.state,
+				...localState,
 				columnOrder: newColumnOrder
 			};
 
-			return this.setState(newState);
+			return localStorage.setItem(
+				'myTodoStorage',
+				JSON.stringify(newState)
+			);
 		}
 
-		const start = this.state.columns[source.droppableId];
-		const finish = this.state.columns[destination.droppableId];
+		const start = localState.columns[source.droppableId];
+		const finish = localState.columns[destination.droppableId];
 
 		if (start === finish) {
 			const newTaskIds = Array.from(start.taskIds);
@@ -83,14 +133,17 @@ class App extends PureComponent {
 			};
 
 			const newState = {
-				...this.state,
+				...localState,
 				columns: {
-					...this.state.columns,
+					...localState.columns,
 					[newColumn.id]: newColumn
 				}
 			};
 
-			return this.setState(newState);
+			return localStorage.setItem(
+				'myTodoStorage',
+				JSON.stringify(newState)
+			);
 		}
 
 		// Moving from one list to another
@@ -110,57 +163,82 @@ class App extends PureComponent {
 		};
 
 		const newState = {
-			...this.state,
+			...localState,
 			columns: {
-				...this.state.columns,
+				...localState.columns,
 				[newStart.id]: newStart,
 				[newFinish.id]: newFinish
 			}
 		};
 
-		return this.setState(newState);
+		return localStorage.setItem('myTodoStorage', JSON.stringify(newState)); //this.setState(newState);
 	};
 
 	render() {
+
+		const localState =
+			JSON.parse(localStorage.getItem('myTodoStorage')) || initialData;
+
 		return (
-			<DragDropContext
-				onDragEnd={this.onDragEnd}
-				onDragStart={this.onDragStart}
-				onDragUpdate={this.onDragUpdate}
-			>
-				<Droppable
-					droppableId='all-columns'
-					direction='horizontal'
-					type='column'
-				>
-					{provided => (
-						<Container
-							{...provided.droppableProps}
-							ref={provided.innerRef}
+			<Fragment>
+				<Container darkmode={this.state.darkMode}>
+					<DragDropContext
+						onDragEnd={this.onDragEnd}
+						onDragStart={this.onDragStart}
+						onDragUpdate={this.onDragUpdate}
+					>
+						<Droppable
+							droppableId='all-columns'
+							direction='horizontal'
+							type='column'
 						>
-							{this.state.columnOrder.map((columnId, index) => {
-								const column = this.state.columns[columnId];
-								const tasks = column.taskIds.map(
-									taskId => this.state.tasks[taskId]
-								);
+							{provided => (
+								<Container
+									{...provided.droppableProps}
+									ref={provided.innerRef}
+								>
+									{localState.columnOrder.map(
+										(columnId, index) => {
+											const column =
+												localState.columns[columnId];
+											const tasks = column.taskIds.map(
+												taskId =>
+													localState.tasks[taskId]
+											);
 
-								const isDropDisabled =
-									index < this.state.homeIndex;
+											const isDropDisabled =
+												index < this.state.homeIndex;
 
-								return (
-									<Column
-										key={column.id}
-										column={column}
-										tasks={tasks}
-										isDropDisabled={isDropDisabled}
-										index={index}
-									/>
-								);
-							})}
-						</Container>
-					)}
-				</Droppable>
-			</DragDropContext>
+											return (
+												<Column
+													key={column.id}
+													column={column}
+													tasks={tasks}
+													isDropDisabled={
+														isDropDisabled
+													}
+													darkmode={
+														this.state.darkMode
+													}
+													index={index}
+												/>
+											);
+										}
+									)}
+								</Container>
+							)}
+						</Droppable>
+					</DragDropContext>
+				</Container>
+				<div>
+					<input
+						value={this.state.enterText}
+						type='text'
+						onChange={this.onChange}
+					/>
+					<button onClick={this.handleClick}>Save</button>
+				</div>
+			</Fragment>
 		);
 	}
 }
